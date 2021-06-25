@@ -3,6 +3,7 @@ import illustrationImg from "../../assets/images/illustration.svg"
 import logoImg from "../../assets/images/logo.svg"
 import googleIconImg from "../../assets/images/google-icon.svg"
 import {Button} from "../../components/Button/index"
+import toast,{Toaster} from "react-hot-toast"
 import { useAuth } from "../../hooks/useAuth"
 import {FormEvent} from "react"
 import { useState } from "react"
@@ -30,6 +31,7 @@ export function Home(){
 
         if(roomCode.trim() === "")
         {
+            toast.error("You must type a room code to join!")
             return;
         }
         
@@ -37,7 +39,12 @@ export function Home(){
         
         if(!roomRef.exists())
         {
-            alert("this room does not exists!")
+            toast.error("This room does not exists!")
+            return;
+        }
+        if(roomRef.val().endedAt)
+        {
+            toast.error("Room already closed!")
             return;
         }
 
@@ -46,6 +53,7 @@ export function Home(){
 
     return(
         <div id="page-auth">
+            <Toaster/>
             <aside>
                 <img src={illustrationImg} alt="Ilustração simbolizando perguntas e respostas" />
                 <strong>Crie salas de Q&amp;A ao-vivo</strong>
