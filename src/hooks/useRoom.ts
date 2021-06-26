@@ -29,44 +29,59 @@ type QuestionTypeFromFirebase = {
   isHighlighted: boolean;
   likes?: Record<string, { authorId: string }>;
 };
+function compare( a:QuestionType, b:QuestionType ) {
+  if ( a.likeCount < b.likeCount ){
+    return 1;
+  }
+  if ( a.likeCount > b.likeCount ){
+    return -1;
+  }
+  return 0;
+}
 
 export function useRoom(roomId: string) {
   const { user } = useAuth();
   const [title, setTitle] = useState("");
   const [questions, setQuestions] = useState<QuestionType[]>([]);
+  const [authorId, setAuthorId] = useState("");
 
   useEffect(() => {
-    const roomRef = database.ref(`rooms/${roomId}`);
-    roomRef.on("value", (room) => {
-      const databaseRoom = room.val();
-      if (databaseRoom) {
-        const firebaseQuestions: FirebaseQuestions =
-          databaseRoom.questions ?? ({} as FirebaseQuestions);
-        const parsedQuestions = Object.entries(
-         firebaseQuestions
-        ).map<QuestionType>(([key, value]) => {
-          return {
-            id: key,
-            content: value.content,
-            author: value.author,
-            isHighlighted: value.isHighlighted,
-            isAnswered: value.isAnswered,
-            likeCount: Object.values(value.likes ?? {}).length,
-            likeId: Object.entries(value.likes ?? {}).find(
-              ([key,value]) => value.authorId === user?.id
-            )?.[0],
-          };
-        });
-        setTitle(databaseRoom.title);
-        setQuestions(parsedQuestions);
+    if(user)
+    {
+      const roomRef = database.ref(`rooms/${roomId}`);
+      roomRef.on("value", (room) => {
+        const databaseRoom = room.val();
+        if (databaseRoom) {
+          const firebaseQuestions: FirebaseQuestions =
+            databaseRoom.questions ?? ({} as FirebaseQuestions);
+          var parsedQuestions = Object.entries(
+           firebaseQuestions
+          ).map<QuestionType>(([key, value]) => {
+            return {
+              id: key,
+              content: value.content,
+              author: value.author,
+              isHighlighted: value.isHighlighted,
+              isAnswered: value.isAnswered,
+              likeCount: Object.values(value.likes ?? {}).length,
+              likeId: Object.entries(value.likes ?? {}).find(
+                ([key,value]) => value.authorId === user?.id
+              )?.[0],
+            };
+          });
+          parsedQuestions = parsedQuestions.sort(compare)
+          setTitle(databaseRoom.title);
+          setQuestions(parsedQuestions);
+          setAuthorId(databaseRoom.authorId);
+        }
+      });
+  
+      toast.success("Loaded questions successfully");
+      return ()=>{
+        roomRef.off("value")
       }
-    });
-
-    toast.success("Loaded questions successfully");
-    return ()=>{
-      roomRef.off("value")
     }
   }, [roomId, user?.id]);
 
-  return { questions, title };
+  return { questions, title,authorId };
 }

@@ -9,6 +9,8 @@ import "./styles.scss";
 import toast, { Toaster } from "react-hot-toast";
 import { database } from "../../services/firebase";
 import { useRoom } from "../../hooks/useRoom";
+import { useHistory } from "react-router-dom";
+import { useEffect } from "react";
 
 type RoomParams = {
   id: string;
@@ -26,15 +28,20 @@ type QuestionType = {
 };
 
 export function Room() {
+  const history = useHistory()
   const [newQuestion, setNewQuestion] = useState("");
   const params = useParams<RoomParams>();
   const roomId = params.id;
-  const { user } = useAuth();
-  const { questions, title } = useRoom(roomId);
-
+  const { user,signInWithGoogle } = useAuth();
+  const { questions, title,authorId } = useRoom(roomId);
 
   async function handleLikeQuestion(questionId?:string,likeId?:string)
   {
+    var questionRef = await (await database.ref(`rooms/${roomId}/questions/${questionId}`).get()).val() as QuestionType
+    if(questionRef && questionRef.isAnswered)
+    {
+      return;
+    }
     if(likeId)
     {
       await database.ref(`rooms/${roomId}/questions/${questionId}/likes/${likeId}`).remove()
@@ -44,6 +51,10 @@ export function Room() {
         authorId:user?.id
       })
     }
+  }
+
+  function handleSeeAsAdmin(){
+    history.push(`/admin/rooms/${roomId}`)
   }
 
   async function handleSendQuestion(event: FormEvent) {
@@ -78,13 +89,18 @@ export function Room() {
       <header>
         <div className="content">
           <img src={logoImg} alt="" />
+          <div>
           <RoomCode code={roomId} />
+          {(user && user.id === authorId) && (
+                        <Button isOutlined onClick={handleSeeAsAdmin}>See as Admin</Button>
+          ) }
+          </div>
         </div>
       </header>
       <main>
         <div className="room-title">
           <h1>Sala {title}</h1>
-          {questions.length > 0 && <span>{questions.length} pergunta(s)</span>}
+          {questions.length > 0 && <span>{questions.length} question(s)</span>}
         </div>
         <form onSubmit={handleSendQuestion}>
           <textarea
@@ -100,11 +116,11 @@ export function Room() {
               </div>
             ) : (
               <span>
-                Para enviar uma pergunta, <button>faça seu login.</button>
+                To send a question, <button type="button" onClick={signInWithGoogle}>please sign in.</button>
               </span>
             )}
             <Button type="submit" disabled={!user}>
-              Enviar Pergunta
+              Send a Question
             </Button>
           </div>
         </form>
@@ -115,6 +131,8 @@ export function Room() {
                 key={question.id}
                 content={question.content}
                 author={question.author}
+                isAnswered = {question.isAnswered}
+                isHighlighted = {question.isHighlighted}
               >
                 <button
                   className={`like-button ${question.likeId && "liked"}`}

@@ -56,17 +56,17 @@ export function Home(){
             <Toaster/>
             <aside>
                 <img src={illustrationImg} alt="Ilustração simbolizando perguntas e respostas" />
-                <strong>Crie salas de Q&amp;A ao-vivo</strong>
-                <p>Tire as dúvidas da sua audiência em tempo-real</p>
+                <strong>Create your own Q&amp;A real time Room </strong>
+                <p>Clear your doubts in real time</p>
             </aside>
             <main>
                 <div className="main-content">
                     <img src={logoImg} alt="LetmeAsk" />
                     <button onClick={handleCreateRoom} className="createRoom">
                         <img src={googleIconImg} alt="" />
-                        Crie sua sala com o Google
+                        Create with Google
                     </button>
-                    <div className="separator">ou entre em uma sala</div>
+                    <div className="separator">Or Join in a Room</div>
                     <form onSubmit={handleJoinRoom}>
                         <input 
                         type="text" 
@@ -75,7 +75,7 @@ export function Home(){
                         onChange={event => setRoomCode(event.target.value)}
                         placeholder="Digite o código da sala"
                         id="" />
-                        <Button type="submit">Entrar na sala</Button>
+                        <Button type="submit">Join Room</Button>
                     </form>
                 </div>
             </main>
