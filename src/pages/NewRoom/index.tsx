@@ -47,7 +47,7 @@ export function NewRoom(){
                         <input 
                         type="text" 
                         name="" 
-                        placeholder="Nome da sala"
+                        placeholder="Room Name"
                         value={newRoom}
                         onChange={event=> setNewRoom(event.target.value)}
                         id="" />
